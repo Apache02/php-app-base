@@ -7,7 +7,9 @@ RUN addgroup -g 1000 -S www-data && adduser -u 1000 -h /var/cache/nginx -H -S -G
 
 # install
 RUN apk update \
-    && apk add --no-cache nginx php php-fpm supervisor
+    && apk add --no-cache nginx php php-curl php-mbstring php-iconv php-openssl php-json php-phar php-ctype php-fpm supervisor git openssh \
+    && cd /opt && wget -O - https://getcomposer.org/installer | php \
+    && ln composer.phar /usr/bin/composer
 
 # forward request and error logs to docker log collector
 RUN ln -sf /dev/stdout /var/log/nginx/access.log \

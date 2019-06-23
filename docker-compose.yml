@@ -2,6 +2,7 @@ version: '3.6'
 
 services:
   web:
+    image: apache02/php-app-base
     build:
       context: .
     ports:
