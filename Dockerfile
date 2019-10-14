@@ -1,15 +1,20 @@
 FROM alpine:3.10
 
 ENV WEB_ROOT /var/www
+ENV USER_DIR /home/www-data
 
 # create user www-data:www-data 1000:1000
-RUN addgroup -g 1000 -S www-data && adduser -u 1000 -h /var/cache/nginx -H -S -G www-data www-data
+RUN addgroup -g 1000 -S www-data \
+    && adduser -u 1000 -h $USER_DIR -H -S -G www-data www-data \
+    && mkdir $USER_DIR \
+    && chown www-data:www-data $USER_DIR
 
 # install
 RUN apk update \
-    && apk add --no-cache nginx php php-curl php-mbstring php-iconv php-openssl php-json php-phar php-ctype php-fpm supervisor git openssh \
-    && cd /opt && wget -O - https://getcomposer.org/installer | php \
-    && ln composer.phar /usr/bin/composer
+    && apk add --no-cache curl nginx php php-curl php-mbstring php-iconv php-openssl php-json php-phar php-ctype php-intl php-simplexml php-dom php-session php-fpm supervisor git openssh \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
+    && chown -R www-data:www-data /var/lib/nginx \
+    && chown -R www-data:www-data /var/tmp/nginx
 
 # forward request and error logs to docker log collector
 RUN ln -sf /dev/stdout /var/log/nginx/access.log \
@@ -21,7 +26,7 @@ RUN rm -Rf /etc/nginx/sites-enabled \
     && rm -Rf $WEB_ROOT/*
 
 COPY ./config/nginx /etc/nginx
-COPY ./config/php-fpm.conf /etc/php7/php-fpm.d/www.conf
+COPY ./config/php7 /etc/php7
 COPY ./config/supervisord.conf /etc/supervisord.conf
 COPY ./www $WEB_ROOT
 COPY ./bin /opt/
@@ -29,7 +34,7 @@ RUN chmod +x /opt/*
 
 WORKDIR $WEB_ROOT
 
-EXPOSE 80
+EXPOSE 8080
 
 CMD ["/opt/entrypoint.sh"]
 

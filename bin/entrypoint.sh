@@ -1,3 +1,5 @@
-#!/usr/bin/env sh
+#!/bin/sh
 
-/usr/bin/supervisord -c /etc/supervisord.conf
+set -e
+
+/usr/bin/supervisord -n -c /etc/supervisord.conf
